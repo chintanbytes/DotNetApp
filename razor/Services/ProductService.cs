@@ -86,23 +86,19 @@ public class Product
 
 public class ProductService
 {
-    public HttpClient Client { get; }
+    private readonly HttpClient client;
+    private readonly IConfiguration _configuration;
 
-    public ProductService(HttpClient client)
+    public ProductService(HttpClient client, IConfiguration configuration)
     {
-        client.BaseAddress = new Uri("http://localhost:5056");
-        // GitHub API versioning
-        client.DefaultRequestHeaders.Add("Accept",
-            "application/vnd.github.v3+json");
-        // GitHub requires a user-agent
-        client.DefaultRequestHeaders.Add("User-Agent",
-            "HttpClientFactory-Sample");
-        Client = client;
+        _configuration = configuration;
+        this.client = client;
+        this.client.BaseAddress = new Uri(_configuration["ApiBaseUrl"]);
     }
 
     public async Task<IEnumerable<Product>> GetProductsAsync()
     {
-        var response = await Client.GetAsync("/Products");
+        var response = await this.client.GetAsync("/Products");
         using var responseStream = await response.Content.ReadAsStreamAsync();
         return await JsonSerializer.DeserializeAsync<IEnumerable<Product>>(responseStream);
     }
